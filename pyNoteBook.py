@@ -34,7 +34,8 @@ class Notes:
         self.note = note
 
 
-def login(conn, c):
+def login(c, conn):
+    print('LOGIN: \n-----------------------------')
     username = input('Please enter your Usernamn: \n')
     password = input('Please enter your password: \n')
     pwdHash = hashlib.sha256(password.encode('UTF-8') +
@@ -42,8 +43,7 @@ def login(conn, c):
     usr = User(username,
                pwdHash,
                c,
-               conn
-               )
+               conn)
 
     if usr.get_password()[0][0] == pwdHash.hexdigest():
         print('Is true!')
@@ -52,11 +52,27 @@ def login(conn, c):
         return username, False
 
 
-def register():
-    pass
+def register(c, conn):
+    print('REGISTER: \n-----------------------------')
+    username = input('Please enter a Username: \n')
+    password = input('Please enter a Password: \n')
+    exist = False
+
+    for row in c.execute('SELECT username FROM user'):
+        if row[0] == username:
+            exist = True
+        else:
+            exist = False
+
+    if exist:
+        print('Your Username exist')
+    else:
+        print('User created!')
+        usr = User(username, password, c, conn)
+        usr.create_user()
 
 
-def create_databases(conn, c):
+def create_databases(c, conn):
     try:
         c.execute('''CREATE TABLE user(
                 id integer primary key,
@@ -81,15 +97,13 @@ def create_databases(conn, c):
 
 
 def main():
-    conn = sqlite3.connect(':memory:')
+    conn = sqlite3.connect('database.db')
     c = conn.cursor()
 
-    create_databases(conn, c)
-    usr = User('Thore', 'Password', c, conn)
-    usr.create_user()
-    usr.get_username()
+    create_databases(c, conn)
+    register(c, conn)
 
-    print('Login: ' + str(login(conn, c)))
+    print('Login: ' + str(login(c, conn)))
 
     conn.close()
 
