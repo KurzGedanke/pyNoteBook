@@ -3,35 +3,46 @@ import hashlib
 
 
 class User:
-    def __init__(self, username, password, curs, conn):
+    def __init__(self, username, password, c, conn):
         self.username = username
         self.password = password
-        self.curs = curs
+        self.c = c
         self.conn = conn
 
     def create_user(self):
         pwdHash = hashlib.sha256(self.password.encode('UTF-8') +
                                  "magic salt".encode('UTF-8'))
-        self.curs.execute('INSERT into user(username, password) VALUES (?, ?)',
-                          (self.username, pwdHash.hexdigest()))
+        self.c.execute('INSERT into user(username, password) VALUES (?, ?)',
+                       (self.username, pwdHash.hexdigest()))
+        self.c.execute('''CREATE TABLE ?(
+                        heading text,
+                        note text
+                        )''', (self.username,))
         self.conn.commit()
 
     def get_username(self):
-        self.curs.execute('SELECT * from user')
-        userData = self.curs.fetchall()
+        self.c.execute('SELECT * from user')
+        userData = self.c.fetchall()
         for data in userData:
             print(data)
 
     def get_password(self):
-        self.curs.execute('SELECT password FROM user WHERE username=(?)',
-                          (self.username,))
-        return self.curs.fetchall()
+        self.c.execute('SELECT password FROM user WHERE username=(?)',
+                       (self.username,))
+        return self.c.fetchall()
+
+    def create_database(self):
+        self.c.execute('''CREATE TABLE (?)(
+                        heading text,
+                        note text
+                        )''', (self.username,))
+        self.c.commit
 
 
 class Notes:
-    def __init__(self, user, note):
-        self.user = user
-        self.note = note
+    def __init__(self, c, conn):
+        self.c = c
+        self.conn = conn
 
 
 def login(c, conn):
