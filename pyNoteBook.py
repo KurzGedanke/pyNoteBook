@@ -43,7 +43,7 @@ class Notes:
         if self.loggedIn:
             self.c.execute('SELECT heading, note FROM note where username=(?)',
                            (self.username, ))
-            print(self.c.fetchall())
+            return self.c.fetchall()
         else:
             print('You are not logged in!')
 
@@ -113,30 +113,41 @@ def create_databases(c, conn):
 
     conn.commit()
 
-def list_notes():
-    pass
+
+def list_notes(noteobj, c, conn):
+    notes = noteobj.get_notes()
+    for key, val in notes:
+        print("Heading:\n" + key)
+        print("Notes:\n" + val)
+
 
 def menu(c, conn):
-    logInput = input('Welcome to pyNoteBook!\n1. Login\n2. Register')
+    loggedIn = '', False
+    noteInput = 0
+    logInput = int(input('Welcome to pyNoteBook!\n1. Login\n2. Register\n'))
     if logInput == 1:
-        loggedIn = login()
+        loggedIn = login(c, conn)
     elif logInput == 2:
-        loggedIn = False
-        register()
+        register(c, conn)
+        return
     else:
         print('Can\'t recognise your input.')
 
-    if loggedIn[1]:
-        note = Notes(loggedIn[0], c, conn)
-        noteInput = input('1. Show your Notes\n2. New Note\3. Delete Note')
-        if noteInput == 1:
-            pass
-        elif noteInput == 2:
-            pass
-        elif noteInput == 3:
-            pass
-        else:
-            print('Can\'t recognise your input.')
+    while noteInput != 4:
+        if loggedIn[1]:
+            print('Welcome %s, you are logged in!'.format(loggedIn[0]))
+            note = Notes(loggedIn[0], loggedIn[1], c, conn)
+            noteInput = int(input('1. Show your Notes\n2. New Note\n3. Delete Note\n4. Exit programm\n'))
+            if noteInput == 1:
+                list_notes(note, c, conn)
+            elif noteInput == 2:
+                note.new_note()
+            elif noteInput == 3:
+                pass
+            elif noteInput == 4:
+                print('Bye! Bye! My old friend...')
+            else:
+                print('Can\'t recognise your input.')
 
 
 def main():
@@ -144,10 +155,6 @@ def main():
     c = conn.cursor()
     create_databases(c, conn)
     menu(c, conn)
-
-    note = Notes('Thore', c, conn)
-    note.new_note()
-    note.get_notes()
 
     conn.close()
 
