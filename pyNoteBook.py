@@ -47,8 +47,17 @@ class Notes:
         else:
             print('You are not logged in!')
 
-    def delete_notes(self):
-        pass
+    def delete_notes(self, heading):
+        if self.loggedIn:
+            try:
+                self.c.execute('''DELETE FROM note WHERE heading IN (?)
+                           AND username = (?)''', (heading, self.username))
+                self.conn.commit()
+            except sqlite3.OperationalError as e:
+                print(e)
+                pass
+        else:
+            print('You are not logged in!')
 
 
 def login(c, conn):
@@ -97,8 +106,9 @@ def create_databases(c, conn):
                 password text
                 )''')
         print('Database user created!')
-    except:
-        print('Database user exist!')
+    except sqlite3.OperationalError as e:
+        print(e)
+        pass
 
     try:
         c.execute('''CREATE TABLE note(
@@ -108,26 +118,41 @@ def create_databases(c, conn):
                 note text
                 )''')
         print('Database note created!')
-    except:
-        print('Database note exist!')
+    except sqlite3.OperationalError as e:
+        print(e)
+        pass
 
     conn.commit()
 
 
 def list_notes(noteobj, c, conn):
     notes = noteobj.get_notes()
+    index = 0
     for key, val in notes:
-        print("Heading:\n" + key)
-        print("Notes:\n" + val)
+        print(f'{index}. Heading:\n {key}')
+        print(f'{index}. Notes:\n {val}')
+        index += 1
+
+
+def delete_note(noteobj, c, conn):
+    notes = noteobj.get_notes()
+    index = 0
+    for key, val in notes:
+        print(f'{index}. Heading:\n {key}')
+        print(f'{index}. Notes:\n {val}')
+        index += 1
+    toDelte = input(
+        'Please enter the heading of the note you want to delete.\n')
+    noteobj.delete_notes(toDelte)
 
 
 def menu(c, conn):
     loggedIn = '', False
     noteInput = 0
-    logInput = int(input('Welcome to pyNoteBook!\n1. Login\n2. Register\n'))
-    if logInput == 1:
+    loginInput = int(input('Welcome to pyNoteBook!\t1. Login\t2. Register\n'))
+    if loginInput == 1:
         loggedIn = login(c, conn)
-    elif logInput == 2:
+    elif loginInput == 2:
         register(c, conn)
         return
     else:
@@ -135,15 +160,16 @@ def menu(c, conn):
 
     while noteInput != 4:
         if loggedIn[1]:
-            print('Welcome %s, you are logged in!'.format(loggedIn[0]))
+            print(f'Welcome {loggedIn[0]}, you are logged in!')
             note = Notes(loggedIn[0], loggedIn[1], c, conn)
-            noteInput = int(input('1. Show your Notes\n2. New Note\n3. Delete Note\n4. Exit programm\n'))
+            noteInput = int(input('1. Show your Notes\t2. New Note\t'
+                                  '3. Delete Note\t4. Exit programm\n'))
             if noteInput == 1:
                 list_notes(note, c, conn)
             elif noteInput == 2:
                 note.new_note()
             elif noteInput == 3:
-                pass
+                delete_note(note, c, conn)
             elif noteInput == 4:
                 print('Bye! Bye! My old friend...')
             else:
