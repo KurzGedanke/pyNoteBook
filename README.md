@@ -2,7 +2,7 @@
 
 ![Python3.6](https://img.shields.io/badge/Python-3.6-blue.svg)
 
-A simple command line notebook writen in python, based on sqlite3.
+A simple command line notebook written in python, based on sqlite3.
 
 - [x] writing/reading from database
 - [x] creating user
