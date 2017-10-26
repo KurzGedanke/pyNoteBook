@@ -3,6 +3,11 @@ import hashlib
 
 
 class User:
+    '''
+    The user class which creates the user in the databse and returns the
+    hashed password from the database.
+    '''
+
     def __init__(self, username, password, c, conn):
         self.username = username
         self.password = password
@@ -10,6 +15,11 @@ class User:
         self.conn = conn
 
     def create_user(self):
+        '''
+        Creates the user in the database and hashes it password with
+        a sha256 hash + a very secret salt. ;)
+        '''
+
         pwdHash = hashlib.sha256(self.password.encode('UTF-8') +
                                  "magic salt".encode('UTF-8'))
         self.c.execute('INSERT into user(username, password) VALUES (?, ?)',
@@ -23,6 +33,11 @@ class User:
 
 
 class Notes:
+    '''
+    Created notes based on the username and if loggedIn = true. Also lists the
+    notes and deletes the notes.
+    '''
+
     def __init__(self, username, loggedIn, c, conn):
         self.username = username
         self.loggedIn = loggedIn
@@ -61,6 +76,11 @@ class Notes:
 
 
 def login(c, conn):
+    '''
+    Logs the user in and if sucessful return a tuple of the username and
+    True or False.
+    '''
+
     print('LOGIN: \n-----------------------------')
     username = input('Please enter your Usernamn: \n')
     password = input('Please enter your password: \n')
@@ -79,6 +99,10 @@ def login(c, conn):
 
 
 def register(c, conn):
+    '''
+    Registers the user in the databse by calling the User class.
+    '''
+
     print('REGISTER: \n-----------------------------')
     username = input('Please enter a Username: \n')
     password = input('Please enter a Password: \n')
@@ -99,6 +123,10 @@ def register(c, conn):
 
 
 def create_databases(c, conn):
+    '''
+    Trys to create the databse and if the database exists it throws and passes
+    an error.
+    '''
     try:
         c.execute('''CREATE TABLE user(
                 id integer primary key,
@@ -126,6 +154,10 @@ def create_databases(c, conn):
 
 
 def list_notes(noteobj, c, conn):
+    '''
+    Lists the notes which returns from the note class
+    '''
+
     notes = noteobj.get_notes()
     index = 0
     for key, val in notes:
@@ -135,6 +167,10 @@ def list_notes(noteobj, c, conn):
 
 
 def delete_note(noteobj, c, conn):
+    '''
+    First lists the notes and then asks for the heading for the one to
+    delete.
+    '''
     notes = noteobj.get_notes()
     index = 0
     for key, val in notes:
